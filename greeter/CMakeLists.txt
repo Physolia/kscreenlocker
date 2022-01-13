@@ -3,15 +3,14 @@ add_definitions(-DTRANSLATION_DOMAIN=\"kscreenlocker_greet\")
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
-    ../kcheckpass
     ${CMAKE_CURRENT_BINARY_DIR}/../
 )
 
 set(kscreenlocker_greet_SRCS
-   authenticator.cpp
    greeterapp.cpp
    main.cpp
    powermanagement.cpp
+   pamauthenticator.cpp
    noaccessnetworkaccessmanagerfactory.cpp
 )
 
@@ -52,10 +51,11 @@ target_link_libraries(kscreenlocker_greet
                         KF5::WaylandClient
                         Wayland::Client
                         LayerShellQt::Interface
+                        ${PAM_LIBRARIES}
                         )
 
 install(TARGETS kscreenlocker_greet DESTINATION ${KDE_INSTALL_LIBEXECDIR})
 
 install(DIRECTORY themes/org.kde.passworddialog DESTINATION ${KDE_INSTALL_DATADIR}/ksmserver/screenlocker)
 
-add_subdirectory(autotests)
+#add_subdirectory(autotests)

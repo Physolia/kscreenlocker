@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 #include "greeterapp.h"
-#include "authenticator.h"
 #include "kscreensaversettingsbase.h"
 #include "lnf_integration.h"
 #include "noaccessnetworkaccessmanagerfactory.h"
@@ -76,6 +75,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include <xcb/xcb.h>
 
+#include "pamauthenticator.h"
+
 // this is usable to fake a "screensaver" installation for testing
 // *must* be "0" for every public commit!
 #define TEST_SCREENSAVER 0
@@ -126,9 +127,17 @@ UnlockApp::UnlockApp(int &argc, char **argv)
     , m_wallpaperIntegration(new WallpaperIntegration(this))
     , m_lnfIntegration(new LnFIntegration(this))
 {
-    m_authenticator = createAuthenticator();
+    m_authenticator = new PamAuthenticator("kde", KUser().loginName(), this);
     // It's a queued connection to give the QML part time to eventually execute code connected to Authenticator::succeeded if any
-    connect(m_authenticator, &Authenticator::succeeded, this, &QCoreApplication::quit, Qt::QueuedConnection);
+    connect(
+        m_authenticator,
+        &PamAuthenticator::succeeded,
+        this,
+        []() {
+            qApp->quit();
+        },
+        Qt::QueuedConnection);
+
     initialize();
 
     if (QX11Info::isPlatformX11()) {
@@ -158,11 +167,6 @@ UnlockApp::~UnlockApp()
         m_ksldConnectionThread->quit();
         m_ksldConnectionThread->wait();
     }
-}
-
-Authenticator *UnlockApp::createAuthenticator()
-{
-    return new Authenticator(AuthenticationMode::Direct, this);
 }
 
 void UnlockApp::initialize()
@@ -711,3 +715,5 @@ void UnlockApp::updateCanHibernate()
 }
 
 } // namespace
+
+#include "greeterapp.moc"
